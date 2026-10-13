@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #FFFFFF;
+    color: #171717;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Custom streetwear scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F5F5F5;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D4D4D4;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #FFE600;
+  }
+}
+
+@layer utilities {
+  .text-stroke-sm {
+    -webkit-text-stroke: 1px rgba(255, 230, 0, 0.3);
+  }
+  .bg-noise {
+    background-image: radial-gradient(rgba(255, 230, 0, 0.05) 1px, transparent 0);
+    background-size: 24px 24px;
+  }
+}
