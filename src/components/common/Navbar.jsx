@@ -39,7 +39,7 @@ export const Navbar = () => {
       <div className="bg-[#FFE600] text-black text-[10px] sm:text-[11px] font-black tracking-widest uppercase py-1.5 px-2 sm:px-4 text-center overflow-hidden shadow-sm">
         <div className="inline-flex items-center gap-2 truncate max-w-full">
           <span className="truncate">
-            ⚡ D.MOST.HIGH // NATIONWIDE DELIVERY (1-2 WEEKS) • IBADAN • LAGOS • ABUJA
+            ⚡ D.MOST.HIGH // NATIONWIDE DELIVERY (1-2 WEEKS) • IBADAN (₦4,000) • OUTSIDE IBADAN (₦6,000)
           </span>
         </div>
       </div>

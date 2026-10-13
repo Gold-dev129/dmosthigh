@@ -463,18 +463,14 @@ export const ProductDetailPage = () => {
                   ⚡ Estimated nationwide delivery time: <span className="text-[#FFE600]">1-2 weeks</span> from payment verification.
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-[11px] pt-1 border-t border-neutral-800">
+                <div className="grid grid-cols-2 gap-2 text-[11px] pt-1 border-t border-neutral-800">
                   <div>
                     <span className="text-neutral-400 block font-medium">IBADAN</span>
                     <span className="font-bold text-white">{formatNaira(DELIVERY_FEES.Ibadan)}</span>
                   </div>
                   <div>
-                    <span className="text-neutral-400 block font-medium">LAGOS</span>
-                    <span className="font-bold text-white">{formatNaira(DELIVERY_FEES.Lagos)}</span>
-                  </div>
-                  <div>
-                    <span className="text-neutral-400 block font-medium">ABUJA</span>
-                    <span className="font-bold text-white">{formatNaira(DELIVERY_FEES.Abuja)}</span>
+                    <span className="text-neutral-400 block font-medium">OUTSIDE IBADAN</span>
+                    <span className="font-bold text-white">{formatNaira(DELIVERY_FEES['Outside Ibadan'])}</span>
                   </div>
                 </div>
                 <p className="text-[10px] text-neutral-500 pt-1">

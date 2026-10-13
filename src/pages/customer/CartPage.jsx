@@ -154,7 +154,7 @@ export const CartPage = () => {
                   </span>
                 </div>
                 <p className="text-[10px] text-neutral-500 mb-3">
-                  *Plus selected destination delivery fee (Ibadan: ₦6,000, Lagos: ₦7,000, Abuja: ₦8,500).
+                  *Plus selected destination delivery fee (Ibadan: ₦4,000, Outside Ibadan: ₦6,000).
                 </p>
 
                 <div className="p-2.5 mb-4 bg-[#FFE600]/10 border border-[#FFE600]/30 text-[#FFE600] text-[11px] font-bold flex items-center gap-2">

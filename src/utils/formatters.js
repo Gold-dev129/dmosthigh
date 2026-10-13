@@ -29,17 +29,15 @@ export const formatDate = (dateString) => {
  * Standard delivery locations and fees
  */
 export const DELIVERY_FEES = {
-  Ibadan: 6000,
-  Lagos: 7000,
-  Abuja: 8500,
+  Ibadan: 4000,
+  'Outside Ibadan': 6000,
 };
 
 export const SERVICE_FEE = 1000;
 
 export const getDeliveryFee = (city) => {
-  if (!city) return DELIVERY_FEES.Lagos;
-  const match = Object.keys(DELIVERY_FEES).find(
-    (c) => c.toLowerCase() === city.trim().toLowerCase()
-  );
-  return match ? DELIVERY_FEES[match] : DELIVERY_FEES.Lagos;
+  if (!city) return DELIVERY_FEES['Outside Ibadan'];
+  const normalized = city.trim().toLowerCase();
+  if (normalized === 'ibadan') return DELIVERY_FEES.Ibadan;
+  return DELIVERY_FEES['Outside Ibadan'];
 };

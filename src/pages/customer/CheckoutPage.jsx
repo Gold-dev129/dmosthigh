@@ -14,8 +14,8 @@ export const CheckoutPage = () => {
   const { error: toastError, success: toastSuccess } = useToast();
   const navigate = useNavigate();
 
-  // Selected city defaults to Lagos
-  const [selectedCity, setSelectedCity] = useState('Lagos');
+  // Selected city defaults to Ibadan
+  const [selectedCity, setSelectedCity] = useState('Ibadan');
 
   // Customer form details
   const [formData, setFormData] = useState({
@@ -23,8 +23,8 @@ export const CheckoutPage = () => {
     email: '',
     phone: '',
     address: '',
-    city: 'Lagos',
-    state: 'Lagos State',
+    city: 'Ibadan',
+    state: 'Oyo State',
     country: 'Nigeria',
   });
 
@@ -68,9 +68,9 @@ export const CheckoutPage = () => {
   // Handle city selection change
   const handleCityChange = (city) => {
     setSelectedCity(city);
-    let autoState = 'Lagos State';
+    let autoState = 'Oyo State';
     if (city === 'Ibadan') autoState = 'Oyo State';
-    if (city === 'Abuja') autoState = 'FCT';
+    else autoState = 'Lagos State / Other';
 
     setFormData((prev) => ({
       ...prev,
@@ -85,7 +85,9 @@ export const CheckoutPage = () => {
   };
 
   // Authoritative calculations
-  const deliveryFee = DELIVERY_FEES[selectedCity] || DELIVERY_FEES.Lagos;
+  const deliveryFee = DELIVERY_FEES[selectedCity] !== undefined
+    ? DELIVERY_FEES[selectedCity]
+    : (selectedCity.toLowerCase() === 'ibadan' ? 4000 : 6000);
   const serviceFee = SERVICE_FEE;
   const total = subtotal + serviceFee + deliveryFee;
 
@@ -275,7 +277,7 @@ export const CheckoutPage = () => {
                       </span>
                     </label>
 
-                    <div className="grid grid-cols-1 min-[420px]:grid-cols-3 gap-2.5 sm:gap-3">
+                    <div className="grid grid-cols-1 min-[420px]:grid-cols-2 gap-2.5 sm:gap-3">
                       {Object.entries(DELIVERY_FEES).map(([city, fee]) => {
                         const isSelected = selectedCity.toLowerCase() === city.toLowerCase();
 
@@ -496,7 +498,7 @@ export const CheckoutPage = () => {
 
               <div className="p-3 bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-400 flex items-center gap-2">
                 <Truck className="w-4 h-4 text-[#FFE600] flex-shrink-0" />
-                <span>Estimated Delivery: 24 - 48 Hours within Lagos & Ibadan. 48 - 72 Hours to Abuja.</span>
+                <span>Estimated Delivery: Within 1-2 weeks nationwide upon payment confirmation.</span>
               </div>
             </div>
           </div>

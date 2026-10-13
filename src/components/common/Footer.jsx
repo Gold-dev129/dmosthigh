@@ -18,7 +18,7 @@ export const Footer = () => {
               Limited streetwear collections crafted from high-gsm luxury fabrics. Engineered for the bold, the underground, and the elevated.
             </p>
             <div className="pt-1 text-[11px] text-neutral-400 leading-normal">
-              <span className="text-[#FFE600] font-bold">NATIONWIDE DELIVERY (1-2 WEEKS):</span> Ibadan (₦6,000) • Lagos (₦7,000) • Abuja (₦8,500)
+              <span className="text-[#FFE600] font-bold">NATIONWIDE DELIVERY (1-2 WEEKS):</span> Ibadan (₦4,000) • Outside Ibadan (₦6,000)
             </div>
           </div>
 

@@ -64,7 +64,7 @@ export const HomePage = () => {
               {/* Delivery Notice Banner */}
               <div className="mt-2.5 sm:mt-3 inline-flex flex-wrap items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3.5 py-1.5 bg-[#FFE600] text-black text-[10px] min-[380px]:text-[11px] sm:text-xs font-black uppercase tracking-wider rounded shadow-sm">
                 <Truck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-black flex-shrink-0" />
-                <span>⚡ NATIONWIDE DELIVERY (1-2 WEEKS) • IBADAN • LAGOS • ABUJA</span>
+                <span>⚡ NATIONWIDE DELIVERY (1-2 WEEKS) • IBADAN (₦4,000) • OUTSIDE IBADAN (₦6,000)</span>
               </div>
             </div>
 
