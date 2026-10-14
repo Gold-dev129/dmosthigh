@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import { paymentService } from '../../api/paymentService.js';
 import { orderService } from '../../api/orderService.js';
+import { productService } from '../../api/productService.js';
 import { formatNaira, formatDate } from '../../utils/formatters.js';
 import { getWhatsAppOrderUrl, WHATSAPP_CONFIG } from '../../utils/whatsapp.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
@@ -264,28 +265,63 @@ export const OrderConfirmedPage = () => {
             </h3>
 
             <div className="space-y-3">
-              {order.items?.map((item, idx) => (
-                <div key={idx} className="flex items-center justify-between p-3 bg-neutral-950 border border-neutral-800 text-xs">
-                  <div className="flex items-center gap-3">
-                    {item.productImage && (
-                      <img
-                        src={item.productImage}
-                        alt={item.productName}
-                        className="w-10 h-12 object-cover bg-neutral-900"
-                      />
-                    )}
-                    <div>
-                      <p className="font-bold text-white uppercase">{item.productName}</p>
-                      <p className="text-[10px] text-neutral-400">
-                        Color: <span className="text-[#FFE600]">{item.color}</span> | Size: {item.size} | Qty: {item.quantity}
-                      </p>
+              {order.items && order.items.length > 0 ? (
+                order.items.map((item, idx) => {
+                  const catalogProducts = productService.getProductsSync().products || [];
+                  const found = catalogProducts.find(
+                    (p) =>
+                      String(p._id) === String(item.productId || item.product?._id || item.product || '') ||
+                      p.slug === (item.productId || item.product?.slug || item.slug)
+                  );
+                  const prodName =
+                    item.productName ||
+                    item.name ||
+                    item.title ||
+                    (typeof item.product === 'object' && item.product?.name) ||
+                    found?.name ||
+                    'Streetwear Piece';
+                  const prodImg =
+                    item.productImage ||
+                    item.image ||
+                    (typeof item.product === 'object' && item.product?.images?.[0]?.url) ||
+                    found?.images?.[0]?.url ||
+                    '';
+                  const prodColor = item.color || item.selectedColor || 'Standard';
+                  const prodSize = item.size || item.selectedSize || 'Standard';
+                  const quantity = item.quantity || 1;
+                  const price = Number(item.price) || (found ? (found.discountPrice || found.price) : 0);
+                  const subtotal = item.subtotal || price * quantity;
+
+                  return (
+                    <div key={idx} className="flex items-center justify-between p-3 bg-neutral-950 border border-neutral-800 text-xs">
+                      <div className="flex items-center gap-3">
+                        {prodImg ? (
+                          <img
+                            src={prodImg}
+                            alt={prodName}
+                            className="w-10 h-12 object-cover bg-neutral-900 border border-neutral-800 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-10 h-12 bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-600">
+                            <Package className="w-4 h-4" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-white uppercase">{prodName}</p>
+                          <p className="text-[10px] text-neutral-400">
+                            Color: <span className="text-[#FFE600]">{prodColor}</span> | Size: {prodSize} | Qty: {quantity}
+                          </p>
+                        </div>
+                      </div>
+                      <span className="font-bold text-white">
+                        {formatNaira(subtotal)}
+                      </span>
                     </div>
-                  </div>
-                  <span className="font-bold text-white">
-                    {formatNaira(item.subtotal || item.price * item.quantity)}
-                  </span>
-                </div>
-              ))}
+                  );
+                })
+              ) : (
+                <div className="p-3 text-neutral-500 text-xs italic">No items listed</div>
+              )}
             </div>
 
             {/* Fee summary */}

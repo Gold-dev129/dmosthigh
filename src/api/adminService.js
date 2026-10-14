@@ -12,11 +12,13 @@ const FALLBACK_PAID_ORDERS = [
       {
         productId: 'dmh_prod_001',
         name: 'D.MOST.HIGH Oversized Heavyweight Tee',
+        productName: 'D.MOST.HIGH Oversized Heavyweight Tee',
         price: 35000,
         quantity: 1,
         color: 'Black',
         size: 'L',
         image: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
+        productImage: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=900&auto=format&fit=crop&q=80',
       },
     ],
     subtotal: 35000,
@@ -42,11 +44,13 @@ const FALLBACK_PAID_ORDERS = [
       {
         productId: 'dmh_prod_002',
         name: 'D.MOST.HIGH Raw-Fleece Cyber Hoodie',
+        productName: 'D.MOST.HIGH Raw-Fleece Cyber Hoodie',
         price: 70000,
         quantity: 1,
         color: 'Yellow',
         size: 'M',
         image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=900&auto=format&fit=crop&q=80',
+        productImage: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=900&auto=format&fit=crop&q=80',
       },
     ],
     subtotal: 70000,
@@ -72,11 +76,13 @@ const FALLBACK_PAID_ORDERS = [
       {
         productId: 'dmh_prod_003',
         name: 'D.MOST.HIGH Wide-Leg Street Sweatpants',
+        productName: 'D.MOST.HIGH Wide-Leg Street Sweatpants',
         price: 60000,
         quantity: 2,
         color: 'Black',
         size: 'XL',
         image: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=900&auto=format&fit=crop&q=80',
+        productImage: 'https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=900&auto=format&fit=crop&q=80',
       },
     ],
     subtotal: 120000,
@@ -102,11 +108,13 @@ const FALLBACK_PAID_ORDERS = [
       {
         productId: 'dmh_prod_004',
         name: 'D.MOST.HIGH Tactical Trucker Cap',
+        productName: 'D.MOST.HIGH Tactical Trucker Cap',
         price: 20000,
         quantity: 1,
         color: 'Black',
         size: 'Standard',
         image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
+        productImage: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=900&auto=format&fit=crop&q=80',
       },
     ],
     subtotal: 20000,
@@ -214,7 +222,17 @@ export const adminService = {
       if (res?.data?.order) return res.data.order;
     } catch {}
 
-    return FALLBACK_PAID_ORDERS.find((o) => o._id === id || o.orderNumber === id) || FALLBACK_PAID_ORDERS[0];
+    let localOrders = [];
+    try {
+      localOrders = JSON.parse(localStorage.getItem('dmosthigh_user_orders') || '[]');
+    } catch {}
+
+    const match =
+      localOrders.find((o) => o._id === id || o.orderNumber === id) ||
+      FALLBACK_PAID_ORDERS.find((o) => o._id === id || o.orderNumber === id) ||
+      FALLBACK_PAID_ORDERS[0];
+
+    return match;
   },
 
   /**

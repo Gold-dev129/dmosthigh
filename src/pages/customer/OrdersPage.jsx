@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { orderService } from '../../api/orderService.js';
+import { productService } from '../../api/productService.js';
 import { formatNaira, formatDate } from '../../utils/formatters.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
@@ -130,30 +131,65 @@ export const OrdersPage = () => {
 
                 {/* Items in Order */}
                 <div className="p-4 sm:p-5 divide-y divide-neutral-900">
-                  {order.items?.map((item, idx) => (
-                    <div key={idx} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        {item.productImage && (
-                          <img
-                            src={item.productImage}
-                            alt={item.productName}
-                            className="w-12 h-14 object-cover bg-neutral-950 flex-shrink-0"
-                          />
-                        )}
-                        <div>
-                          <p className="font-bold text-xs uppercase text-white">
-                            {item.productName}
-                          </p>
-                          <p className="text-[11px] text-neutral-400 mt-0.5">
-                            Color: <strong className="text-neutral-200">{item.color}</strong> • Size: <strong className="text-neutral-200">{item.size}</strong> • Qty: {item.quantity}
-                          </p>
+                  {order.items && order.items.length > 0 ? (
+                    order.items.map((item, idx) => {
+                      const catalogProducts = productService.getProductsSync().products || [];
+                      const found = catalogProducts.find(
+                        (p) =>
+                          String(p._id) === String(item.productId || item.product?._id || item.product || '') ||
+                          p.slug === (item.productId || item.product?.slug || item.slug)
+                      );
+                      const prodName =
+                        item.productName ||
+                        item.name ||
+                        item.title ||
+                        (typeof item.product === 'object' && item.product?.name) ||
+                        found?.name ||
+                        'Streetwear Piece';
+                      const prodImg =
+                        item.productImage ||
+                        item.image ||
+                        (typeof item.product === 'object' && item.product?.images?.[0]?.url) ||
+                        found?.images?.[0]?.url ||
+                        '';
+                      const prodColor = item.color || item.selectedColor || 'Standard';
+                      const prodSize = item.size || item.selectedSize || 'Standard';
+                      const quantity = item.quantity || 1;
+                      const price = Number(item.price) || (found ? (found.discountPrice || found.price) : 0);
+                      const subtotal = item.subtotal || price * quantity;
+
+                      return (
+                        <div key={idx} className="py-3 first:pt-0 last:pb-0 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3">
+                            {prodImg ? (
+                              <img
+                                src={prodImg}
+                                alt={prodName}
+                                className="w-12 h-14 object-cover bg-neutral-950 border border-neutral-800 flex-shrink-0"
+                              />
+                            ) : (
+                              <div className="w-12 h-14 bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-600">
+                                <Package className="w-5 h-5" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-bold text-xs uppercase text-white">
+                                {prodName}
+                              </p>
+                              <p className="text-[11px] text-neutral-400 mt-0.5">
+                                Color: <strong className="text-neutral-200">{prodColor}</strong> • Size: <strong className="text-neutral-200">{prodSize}</strong> • Qty: {quantity}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="font-bold text-xs text-white">
+                            {formatNaira(subtotal)}
+                          </span>
                         </div>
-                      </div>
-                      <span className="font-bold text-xs text-white">
-                        {formatNaira(item.subtotal || item.price * item.quantity)}
-                      </span>
-                    </div>
-                  ))}
+                      );
+                    })
+                  ) : (
+                    <div className="py-2 text-neutral-500 text-xs italic">No items listed</div>
+                  )}
                 </div>
 
                 {/* Order Footer & Fees Summary */}

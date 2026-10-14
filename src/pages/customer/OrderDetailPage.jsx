@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { orderService } from '../../api/orderService.js';
+import { productService } from '../../api/productService.js';
 import { formatNaira, formatDate } from '../../utils/formatters.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import { EmptyState } from '../../components/common/EmptyState.jsx';
@@ -123,33 +124,70 @@ export const OrderDetailPage = () => {
             </h3>
 
             <div className="border border-neutral-800 divide-y divide-neutral-850">
-              {order.items?.map((item, idx) => (
-                <div key={idx} className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs">
-                  <div className="flex items-center gap-3 sm:gap-4">
-                    {item.productImage && (
-                      <img
-                        src={item.productImage}
-                        alt={item.productName}
-                        className="w-12 h-14 sm:w-14 sm:h-16 object-cover bg-neutral-950 flex-shrink-0"
-                      />
-                    )}
-                    <div>
-                      <p className="font-black uppercase text-xs sm:text-sm text-white">
-                        {item.productName}
-                      </p>
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-neutral-400 mt-1">
-                        <span>Color: <strong className="text-[#FFE600]">{item.color}</strong></span>
-                        <span>Size: <strong className="text-white">{item.size}</strong></span>
-                        <span>Qty: {item.quantity}</span>
-                      </div>
-                    </div>
-                  </div>
+              {order.items && order.items.length > 0 ? (
+                order.items.map((item, idx) => {
+                  const catalogProducts = productService.getProductsSync().products || [];
+                  const found = catalogProducts.find(
+                    (p) =>
+                      String(p._id) === String(item.productId || item.product?._id || item.product || '') ||
+                      p.slug === (item.productId || item.product?.slug || item.slug)
+                  );
+                  const prodName =
+                    item.productName ||
+                    item.name ||
+                    item.title ||
+                    (typeof item.product === 'object' && item.product?.name) ||
+                    found?.name ||
+                    'Streetwear Piece';
+                  const prodImg =
+                    item.productImage ||
+                    item.image ||
+                    (typeof item.product === 'object' && item.product?.images?.[0]?.url) ||
+                    found?.images?.[0]?.url ||
+                    '';
+                  const prodColor = item.color || item.selectedColor || 'Standard';
+                  const prodSize = item.size || item.selectedSize || 'Standard';
+                  const quantity = item.quantity || 1;
+                  const price = Number(item.price) || (found ? (found.discountPrice || found.price) : 0);
+                  const subtotal = item.subtotal || price * quantity;
 
-                  <span className="font-black text-sm text-white sm:text-right">
-                    {formatNaira(item.subtotal || item.price * item.quantity)}
-                  </span>
+                  return (
+                    <div key={idx} className="p-3 sm:p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 text-xs">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        {prodImg ? (
+                          <img
+                            src={prodImg}
+                            alt={prodName}
+                            className="w-12 h-14 sm:w-14 sm:h-16 object-cover bg-neutral-950 border border-neutral-800 flex-shrink-0"
+                          />
+                        ) : (
+                          <div className="w-12 h-14 sm:w-14 sm:h-16 bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-600">
+                            <Package className="w-5 h-5" />
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-black uppercase text-xs sm:text-sm text-white">
+                            {prodName}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-neutral-400 mt-1">
+                            <span>Color: <strong className="text-[#FFE600] uppercase">{prodColor}</strong></span>
+                            <span>Size: <strong className="text-white uppercase">{prodSize}</strong></span>
+                            <span>Qty: <strong className="text-white">{quantity}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <span className="font-black text-sm text-white sm:text-right">
+                        {formatNaira(subtotal)}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-4 text-neutral-400 text-xs italic">
+                  No items listed for this order.
                 </div>
-              ))}
+              )}
             </div>
           </div>
 

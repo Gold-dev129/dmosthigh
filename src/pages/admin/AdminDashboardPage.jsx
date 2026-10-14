@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminService } from '../../api/adminService.js';
+import { productService } from '../../api/productService.js';
 import { formatNaira, formatDate } from '../../utils/formatters.js';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner.jsx';
 import {
@@ -212,11 +213,23 @@ export const AdminDashboardPage = () => {
                           {ord.items && ord.items.length > 0 ? (
                             <div className="space-y-1">
                               {ord.items.map((it, idx) => {
-                                const prodName = it.productName || it.name || 'Piece';
+                                const catalogProducts = productService.getProductsSync().products || [];
+                                const found = catalogProducts.find(
+                                  (p) =>
+                                    String(p._id) === String(it.productId || it.product?._id || it.product || '') ||
+                                    p.slug === (it.productId || it.product?.slug || it.slug)
+                                );
+                                const prodName =
+                                  it.productName ||
+                                  it.name ||
+                                  it.title ||
+                                  (typeof it.product === 'object' && it.product?.name) ||
+                                  found?.name ||
+                                  'Piece';
                                 const variant = [it.selectedColor || it.color, it.selectedSize || it.size].filter(Boolean).join(' • ');
                                 return (
                                   <div key={idx} className="leading-tight">
-                                    <span className="font-bold text-white text-xs block truncate max-w-[180px]" title={prodName}>
+                                    <span className="font-bold text-white text-xs block truncate max-w-[200px]" title={prodName}>
                                       {it.quantity > 1 ? `${it.quantity}x ` : ''}{prodName}
                                     </span>
                                     {variant && (

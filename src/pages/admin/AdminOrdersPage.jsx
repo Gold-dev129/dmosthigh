@@ -17,6 +17,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { getAdminCustomerWhatsAppUrl } from '../../utils/whatsapp.js';
+import { productService } from '../../api/productService.js';
 
 export const AdminOrdersPage = () => {
   const { success, error: toastError } = useToast();
@@ -232,19 +233,37 @@ export const AdminOrdersPage = () => {
                     {ord.items && ord.items.length > 0 ? (
                       <div className="space-y-1.5">
                         {ord.items.map((it, idx) => {
-                          const prodName = it.productName || it.name || 'Streetwear Piece';
+                          const catalogProducts = productService.getProductsSync().products || [];
+                          const found = catalogProducts.find(
+                            (p) =>
+                              String(p._id) === String(it.productId || it.product?._id || it.product || '') ||
+                              p.slug === (it.productId || it.product?.slug || it.slug)
+                          );
+                          const prodName =
+                            it.productName ||
+                            it.name ||
+                            it.title ||
+                            (typeof it.product === 'object' && it.product?.name) ||
+                            found?.name ||
+                            'Streetwear Piece';
                           const variant = [it.selectedColor || it.color, it.selectedSize || it.size].filter(Boolean).join(' • ');
+                          const itImg =
+                            it.productImage ||
+                            it.image ||
+                            (typeof it.product === 'object' && it.product?.images?.[0]?.url) ||
+                            found?.images?.[0]?.url;
+
                           return (
                             <div key={idx} className="flex items-center gap-2">
-                              {it.productImage && (
+                              {itImg && (
                                 <img
-                                  src={it.productImage}
+                                  src={itImg}
                                   alt={prodName}
                                   className="w-8 h-9 object-cover bg-neutral-900 border border-neutral-800 flex-shrink-0"
                                 />
                               )}
                               <div className="leading-tight">
-                                <span className="font-bold text-white text-xs block truncate max-w-[180px]" title={prodName}>
+                                <span className="font-bold text-white text-xs block truncate max-w-[200px]" title={prodName}>
                                   {it.quantity > 1 ? `${it.quantity}x ` : ''}{prodName}
                                 </span>
                                 {variant && (

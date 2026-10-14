@@ -101,9 +101,14 @@ export const CheckoutPage = () => {
       const payload = {
         items: items.map((item) => ({
           productId: item.productId,
+          productName: item.name || item.productName || item.title || 'Streetwear Piece',
+          name: item.name || item.productName || item.title || 'Streetwear Piece',
+          productImage: item.image || item.productImage || '',
+          image: item.image || item.productImage || '',
+          price: item.price || 0,
           quantity: item.quantity,
-          color: item.color,
-          size: item.size,
+          color: item.color || item.selectedColor || 'Standard',
+          size: item.size || item.selectedSize || 'Standard',
         })),
         customer: {
           name: formData.name.trim(),

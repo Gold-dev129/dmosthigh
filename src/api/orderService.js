@@ -1,4 +1,5 @@
 import apiClient from './client.js';
+import { productService } from './productService.js';
 
 export const orderService = {
   /**
@@ -16,12 +17,32 @@ export const orderService = {
     } catch {}
 
     if (!orderResult?.order) {
+      const catalogProducts = productService.getProductsSync().products || [];
+      const enrichedItems = (items || []).map((it) => {
+        const found = catalogProducts.find(
+          (p) =>
+            String(p._id) === String(it.productId || it.product?._id || it.product || '') ||
+            p.slug === (it.productId || it.product?.slug || it.slug)
+        );
+        const name = it.productName || it.name || it.title || found?.name || 'Streetwear Piece';
+        const image = it.productImage || it.image || found?.images?.[0]?.url || '';
+        const price = Number(it.price) || (found ? (found.discountPrice || found.price) : 0);
+        return {
+          ...it,
+          name,
+          productName: name,
+          image,
+          productImage: image,
+          price,
+        };
+      });
+
       const orderNumber =
         'DMH-' +
         new Date().toISOString().slice(0, 10).replace(/-/g, '') +
         '-' +
         Math.floor(1000 + Math.random() * 9000);
-      const subtotal = items.reduce(
+      const subtotal = enrichedItems.reduce(
         (sum, item) => sum + (Number(item.price) || 0) * (Number(item.quantity) || 1),
         0
       );
@@ -32,7 +53,7 @@ export const orderService = {
         customerName: customer.name,
         customerEmail: customer.email,
         customerPhone: customer.phone,
-        items,
+        items: enrichedItems,
         subtotal,
         shippingFee,
         total: subtotal + shippingFee,

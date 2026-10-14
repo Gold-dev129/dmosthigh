@@ -18,6 +18,7 @@ import {
   MessageCircle,
 } from 'lucide-react';
 import { getAdminCustomerWhatsAppUrl } from '../../utils/whatsapp.js';
+import { productService } from '../../api/productService.js';
 
 export const AdminOrderDetailPage = () => {
   const { id } = useParams();
@@ -269,38 +270,80 @@ export const AdminOrderDetailPage = () => {
           </h3>
 
           <div className="border border-neutral-800 divide-y divide-neutral-850">
-            {order.items?.map((item, idx) => (
-              <div key={idx} className="p-4 flex items-center justify-between gap-4 text-xs">
-                <div className="flex items-center gap-4">
-                  {item.productImage && (
-                    <img
-                      src={item.productImage}
-                      alt={item.productName}
-                      className="w-14 h-16 object-cover bg-neutral-950"
-                    />
-                  )}
-                  <div>
-                    <p className="font-black uppercase text-sm text-white">
-                      {item.productName}
-                    </p>
-                    <div className="flex items-center gap-3 text-neutral-400 mt-1">
-                      <span>Color: <strong className="text-[#FFE600]">{item.color}</strong></span>
-                      <span>Size: <strong className="text-white">{item.size}</strong></span>
-                      <span>Quantity: {item.quantity}</span>
+            {order.items && order.items.length > 0 ? (
+              order.items.map((item, idx) => {
+                const catalogProducts = productService.getProductsSync().products || [];
+                const foundProduct = catalogProducts.find(
+                  (p) =>
+                    String(p._id) === String(item.productId || item.product?._id || item.product || '') ||
+                    p.slug === (item.productId || item.product?.slug || item.slug)
+                );
+
+                const prodName =
+                  item.productName ||
+                  item.name ||
+                  item.title ||
+                  (typeof item.product === 'object' && item.product?.name) ||
+                  foundProduct?.name ||
+                  'Streetwear Piece';
+
+                const prodImg =
+                  item.productImage ||
+                  item.image ||
+                  (typeof item.product === 'object' && item.product?.images?.[0]?.url) ||
+                  foundProduct?.images?.[0]?.url ||
+                  '';
+
+                const prodColor = item.color || item.selectedColor || item.chosenColor || 'Standard';
+                const prodSize = item.size || item.selectedSize || item.chosenSize || 'Standard';
+                const quantity = item.quantity || 1;
+                const price = Number(item.price) || (foundProduct ? (foundProduct.discountPrice || foundProduct.price) : 0);
+                const subtotal = item.subtotal || price * quantity;
+
+                return (
+                  <div key={idx} className="p-4 flex items-center justify-between gap-4 text-xs">
+                    <div className="flex items-center gap-4">
+                      {prodImg ? (
+                        <img
+                          src={prodImg}
+                          alt={prodName}
+                          className="w-14 h-16 object-cover bg-neutral-950 border border-neutral-800 flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-14 h-16 bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-600">
+                          <Package className="w-6 h-6" />
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-black uppercase text-sm sm:text-base text-white tracking-wide">
+                          {prodName}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-3 text-neutral-400 mt-1">
+                          <span>Color: <strong className="text-[#FFE600] uppercase">{prodColor}</strong></span>
+                          <span>Size: <strong className="text-white uppercase">{prodSize}</strong></span>
+                          <span>Quantity: <strong className="text-white">{quantity}</strong></span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="text-right flex-shrink-0">
+                      <span className="font-black text-sm text-white block">
+                        {formatNaira(subtotal)}
+                      </span>
+                      {price > 0 && (
+                        <span className="text-[10px] text-neutral-500">
+                          Unit: {formatNaira(price)}
+                        </span>
+                      )}
                     </div>
                   </div>
-                </div>
-
-                <div className="text-right">
-                  <span className="font-black text-sm text-white block">
-                    {formatNaira(item.subtotal || item.price * item.quantity)}
-                  </span>
-                  <span className="text-[10px] text-neutral-500">
-                    Unit: {formatNaira(item.price)}
-                  </span>
-                </div>
+                );
+              })
+            ) : (
+              <div className="p-4 text-neutral-400 text-xs italic">
+                No pieces recorded in this order file.
               </div>
-            ))}
+            )}
           </div>
         </div>
 
