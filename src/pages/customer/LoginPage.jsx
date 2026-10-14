@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext.jsx';
 import { useToast } from '../../context/ToastContext.jsx';
-import { LogIn, Lock, Mail, ArrowRight, Shield } from 'lucide-react';
+import { LogIn, Lock, Mail, ArrowRight } from 'lucide-react';
 
 export const LoginPage = () => {
   const { login } = useAuth();
@@ -48,12 +48,6 @@ export const LoginPage = () => {
     }
   };
 
-  const fillAdminCredentials = () => {
-    setEmail('Jd467160@gmail.com');
-    setPassword('DMOSTHIGH@2026');
-    setErrorMessage('');
-  };
-
   return (
     <div className="min-h-[85vh] flex items-center justify-center bg-[#0A0A0A] py-6 sm:py-12 px-3 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-6 sm:space-y-8 bg-[#101010] border border-neutral-800 p-4 min-[380px]:p-6 sm:p-10 relative">
@@ -73,28 +67,6 @@ export const LoginPage = () => {
           <p className="text-[11px] sm:text-xs text-neutral-400 mt-1 uppercase tracking-wider">
             Sign in to access your order history and account details
           </p>
-        </div>
-
-        {/* Admin Quick Access Pill */}
-        <div className="p-3 bg-neutral-950 border border-neutral-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <Shield className="w-4 h-4 text-[#FFE600] flex-shrink-0" />
-            <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-neutral-400 block">
-                ADMIN ACCESS
-              </span>
-              <span className="text-[11px] text-neutral-200 font-mono truncate block max-w-[190px] sm:max-w-none">
-                Jd467160@gmail.com
-              </span>
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={fillAdminCredentials}
-            className="w-full sm:w-auto px-2.5 py-1.5 bg-[#FFE600]/15 hover:bg-[#FFE600] text-[#FFE600] hover:text-black font-black uppercase tracking-wider text-[10px] border border-[#FFE600]/40 transition-colors text-center"
-          >
-            Fill Admin Credentials
-          </button>
         </div>
 
         {/* Error Alert */}

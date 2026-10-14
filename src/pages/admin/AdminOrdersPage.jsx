@@ -198,11 +198,12 @@ export const AdminOrdersPage = () => {
         />
       ) : (
         <div className="bg-[#101010] border border-neutral-800 overflow-x-auto -mx-1 sm:mx-0">
-          <table className="w-full min-w-[720px] text-left text-xs">
+          <table className="w-full min-w-[900px] text-left text-xs">
             <thead className="bg-neutral-950 border-b border-neutral-800 text-neutral-400 font-bold uppercase tracking-wider">
               <tr>
                 <th className="py-3.5 px-4">Order #</th>
                 <th className="py-3.5 px-4">Customer Details</th>
+                <th className="py-3.5 px-4 min-w-[220px]">Products Ordered</th>
                 <th className="py-3.5 px-4">City / State</th>
                 <th className="py-3.5 px-4">Total Amount</th>
                 <th className="py-3.5 px-4">Status</th>
@@ -224,6 +225,41 @@ export const AdminOrdersPage = () => {
                     <p className="font-bold text-white uppercase">{ord.customerName}</p>
                     <p className="text-[11px] text-neutral-400">{ord.customerPhone}</p>
                     <p className="text-[10px] text-neutral-500">{ord.customerEmail}</p>
+                  </td>
+
+                  {/* Products Ordered Column */}
+                  <td className="py-4 px-4 min-w-[220px]">
+                    {ord.items && ord.items.length > 0 ? (
+                      <div className="space-y-1.5">
+                        {ord.items.map((it, idx) => {
+                          const prodName = it.productName || it.name || 'Streetwear Piece';
+                          const variant = [it.selectedColor || it.color, it.selectedSize || it.size].filter(Boolean).join(' • ');
+                          return (
+                            <div key={idx} className="flex items-center gap-2">
+                              {it.productImage && (
+                                <img
+                                  src={it.productImage}
+                                  alt={prodName}
+                                  className="w-8 h-9 object-cover bg-neutral-900 border border-neutral-800 flex-shrink-0"
+                                />
+                              )}
+                              <div className="leading-tight">
+                                <span className="font-bold text-white text-xs block truncate max-w-[180px]" title={prodName}>
+                                  {it.quantity > 1 ? `${it.quantity}x ` : ''}{prodName}
+                                </span>
+                                {variant && (
+                                  <span className="text-[10px] text-[#FFE600] font-mono block">
+                                    {variant}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <span className="text-neutral-500 text-[11px] italic">No items listed</span>
+                    )}
                   </td>
 
                   <td className="py-4 px-4 whitespace-nowrap">

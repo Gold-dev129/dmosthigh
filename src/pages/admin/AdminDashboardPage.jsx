@@ -185,6 +185,7 @@ export const AdminDashboardPage = () => {
                   <tr>
                     <th className="py-3 px-3">Order Number</th>
                     <th className="py-3 px-3">Customer</th>
+                    <th className="py-3 px-3 min-w-[170px]">Products Ordered</th>
                     <th className="py-3 px-3">Date</th>
                     <th className="py-3 px-3">Amount</th>
                     <th className="py-3 px-3">Status</th>
@@ -205,6 +206,31 @@ export const AdminDashboardPage = () => {
                             <p className="font-bold text-white">{ord.customerName}</p>
                             <p className="text-[10px] text-neutral-500">{ord.customerEmail}</p>
                           </div>
+                        </td>
+                        {/* Products Ordered Column */}
+                        <td className="py-3.5 px-3 min-w-[170px]">
+                          {ord.items && ord.items.length > 0 ? (
+                            <div className="space-y-1">
+                              {ord.items.map((it, idx) => {
+                                const prodName = it.productName || it.name || 'Piece';
+                                const variant = [it.selectedColor || it.color, it.selectedSize || it.size].filter(Boolean).join(' • ');
+                                return (
+                                  <div key={idx} className="leading-tight">
+                                    <span className="font-bold text-white text-xs block truncate max-w-[180px]" title={prodName}>
+                                      {it.quantity > 1 ? `${it.quantity}x ` : ''}{prodName}
+                                    </span>
+                                    {variant && (
+                                      <span className="text-[10px] text-[#FFE600] font-mono block">
+                                        {variant}
+                                      </span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-neutral-500 text-[11px]">—</span>
+                          )}
                         </td>
                         <td className="py-3.5 px-3 text-neutral-400">
                           {formatDate(ord.createdAt)}
