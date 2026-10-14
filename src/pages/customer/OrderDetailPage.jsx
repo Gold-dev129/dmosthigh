@@ -30,6 +30,16 @@ export const OrderDetailPage = () => {
     };
 
     fetchOrder();
+
+    const handleOrderStatusUpdate = (e) => {
+      const { orderId, status } = e.detail || {};
+      if (orderId && (orderId === id || orderId === order?._id || orderId === order?.orderNumber)) {
+        setOrder((prev) => (prev ? { ...prev, orderStatus: status } : prev));
+      }
+    };
+
+    window.addEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
+    return () => window.removeEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
   }, [id]);
 
   if (loading) {

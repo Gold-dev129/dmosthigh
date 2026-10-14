@@ -47,6 +47,26 @@ export const AdminOrdersPage = () => {
 
   useEffect(() => {
     fetchOrders();
+
+    const handleOrderStatusUpdate = (e) => {
+      const { orderId, status } = e.detail || {};
+      if (orderId && status) {
+        setOrders((prev) =>
+          prev.map((ord) =>
+            ord._id === orderId || ord.orderNumber === orderId
+              ? {
+                  ...ord,
+                  orderStatus: status,
+                  ...(status === 'paid' ? { paymentStatus: 'paid' } : {}),
+                }
+              : ord
+          )
+        );
+      }
+    };
+
+    window.addEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
+    return () => window.removeEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
   }, [statusFilter]);
 
   const handleSearchSubmit = (e) => {
@@ -319,41 +339,55 @@ export const AdminOrdersPage = () => {
                     </span>
                   </td>
 
-                  {/* Status Transition Action Button */}
+                  {/* Status Transition Action & Direct Selector */}
                   <td className="py-4 px-4 whitespace-nowrap">
-                    {ord.orderStatus === 'pending' || ord.paymentStatus === 'pending' ? (
-                      <button
-                        onClick={() => handleMarkAsPaid(ord)}
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={ord.orderStatus || 'pending'}
+                        onChange={(e) => handleQuickStatusChange(ord._id, e.target.value)}
                         disabled={updatingId === ord._id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-black font-black uppercase text-[10px] tracking-wider hover:bg-emerald-400 transition-colors shadow-sm disabled:opacity-50"
-                        title="Click to confirm bank transfer receipt, mark as PAID, and open WhatsApp confirmation"
+                        className="bg-neutral-900 border border-neutral-700 text-[10px] font-black uppercase tracking-wider text-white px-2 py-1.5 focus:border-[#FFE600] focus:outline-none"
                       >
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        CONFIRM & WHATSAPP
-                      </button>
-                    ) : ord.orderStatus === 'processing' || ord.orderStatus === 'paid' ? (
-                      <button
-                        onClick={() => handleQuickStatusChange(ord._id, 'shipped')}
-                        disabled={updatingId === ord._id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#FFE600] text-black font-black uppercase text-[10px] tracking-wider hover:bg-yellow-400 transition-colors shadow-sm disabled:opacity-50"
-                      >
-                        <Truck className="w-3.5 h-3.5" />
-                        MARK AS SHIPPED
-                      </button>
-                    ) : ord.orderStatus === 'shipped' ? (
-                      <button
-                        onClick={() => handleQuickStatusChange(ord._id, 'delivered')}
-                        disabled={updatingId === ord._id}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-400 text-black font-black uppercase text-[10px] tracking-wider hover:bg-cyan-300 transition-colors shadow-sm disabled:opacity-50"
-                      >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        MARK AS DELIVERED
-                      </button>
-                    ) : (
-                      <span className="text-[10px] text-neutral-500 font-bold uppercase">
-                        {ord.orderStatus === 'delivered' ? '✓ Completed' : 'No Action'}
-                      </span>
-                    )}
+                        <option value="pending">PENDING</option>
+                        <option value="paid">PAID</option>
+                        <option value="processing">PROCESSING</option>
+                        <option value="shipped">SHIPPED</option>
+                        <option value="delivered">DELIVERED</option>
+                        <option value="cancelled">CANCELLED</option>
+                      </select>
+
+                      {ord.orderStatus === 'pending' || ord.paymentStatus === 'pending' ? (
+                        <button
+                          onClick={() => handleMarkAsPaid(ord)}
+                          disabled={updatingId === ord._id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-emerald-500 text-black font-black uppercase text-[10px] tracking-wider hover:bg-emerald-400 transition-colors shadow-sm disabled:opacity-50"
+                          title="Confirm receipt and notify on WhatsApp"
+                        >
+                          <MessageCircle className="w-3 h-3" />
+                          CONFIRM
+                        </button>
+                      ) : ord.orderStatus === 'processing' || ord.orderStatus === 'paid' ? (
+                        <button
+                          onClick={() => handleQuickStatusChange(ord._id, 'shipped')}
+                          disabled={updatingId === ord._id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-[#FFE600] text-black font-black uppercase text-[10px] tracking-wider hover:bg-yellow-400 transition-colors shadow-sm disabled:opacity-50"
+                          title="Quick transition to Shipped"
+                        >
+                          <Truck className="w-3 h-3" />
+                          SHIP
+                        </button>
+                      ) : ord.orderStatus === 'shipped' ? (
+                        <button
+                          onClick={() => handleQuickStatusChange(ord._id, 'delivered')}
+                          disabled={updatingId === ord._id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-cyan-400 text-black font-black uppercase text-[10px] tracking-wider hover:bg-cyan-300 transition-colors shadow-sm disabled:opacity-50"
+                          title="Quick transition to Delivered"
+                        >
+                          <CheckCircle2 className="w-3 h-3" />
+                          DELIVER
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
 
                   <td className="py-4 px-4 text-right whitespace-nowrap">

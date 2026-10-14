@@ -1,5 +1,6 @@
 import apiClient from './client.js';
 import { productService } from './productService.js';
+import { applyStatusOverride } from './adminService.js';
 
 export const orderService = {
   /**
@@ -87,7 +88,7 @@ export const orderService = {
       const res = await apiClient.get('/orders/my-orders', { params });
       if (res?.data && Array.isArray(res.data) && res.data.length > 0) {
         return {
-          orders: res.data,
+          orders: res.data.map(applyStatusOverride),
           pagination: res.pagination || {},
         };
       }
@@ -149,7 +150,7 @@ export const orderService = {
     }
 
     return {
-      orders: userOrders,
+      orders: userOrders.map(applyStatusOverride),
       pagination: { total: userOrders.length, page: 1, pages: 1 },
     };
   },
@@ -160,10 +161,11 @@ export const orderService = {
   async getOrderById(id) {
     try {
       const res = await apiClient.get(`/orders/${id}`);
-      if (res?.data?.order) return res.data.order;
+      if (res?.data?.order) return applyStatusOverride(res.data.order);
     } catch {}
 
     const { orders } = await this.getMyOrders();
-    return orders.find((o) => o._id === id || o.orderNumber === id) || orders[0];
+    const match = orders.find((o) => o._id === id || o.orderNumber === id) || orders[0];
+    return applyStatusOverride(match);
   },
 };

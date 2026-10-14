@@ -39,6 +39,15 @@ export const AdminDashboardPage = () => {
     };
 
     fetchDashboard();
+
+    const handleOrderStatusUpdate = () => {
+      adminService.getDashboardStats().then((data) => {
+        if (data) setStats(data);
+      }).catch(() => {});
+    };
+
+    window.addEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
+    return () => window.removeEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
   }, []);
 
   if (loading) {
@@ -255,7 +264,15 @@ export const AdminDashboardPage = () => {
                           <span className={`px-2 py-0.5 text-[9px] font-black uppercase tracking-wider border ${
                             isPending
                               ? 'bg-amber-500/20 text-amber-400 border-amber-500/40'
-                              : 'bg-emerald-950/60 border border-emerald-500/40 text-emerald-400'
+                              : ord.orderStatus === 'paid'
+                              ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                              : ord.orderStatus === 'processing'
+                              ? 'bg-blue-500/20 text-blue-400 border-blue-500/40'
+                              : ord.orderStatus === 'shipped'
+                              ? 'bg-[#FFE600]/20 text-[#FFE600] border-[#FFE600]/40'
+                              : ord.orderStatus === 'delivered'
+                              ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+                              : 'bg-red-500/20 text-red-400 border-red-500/40'
                           }`}>
                             {isPending ? 'Awaiting Payment' : ord.orderStatus}
                           </span>

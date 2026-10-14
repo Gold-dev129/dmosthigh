@@ -45,11 +45,22 @@ export const AdminOrderDetailPage = () => {
 
   useEffect(() => {
     fetchOrder();
+
+    const handleOrderStatusUpdate = (e) => {
+      const { orderId, status } = e.detail || {};
+      if (orderId && (orderId === id || orderId === order?._id || orderId === order?.orderNumber)) {
+        setSelectedStatus(status);
+        setOrder((prev) => (prev ? { ...prev, orderStatus: status } : prev));
+      }
+    };
+
+    window.addEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
+    return () => window.removeEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
   }, [id]);
 
   const handleUpdateStatus = async (newStatus) => {
-    const targetStatus = newStatus || selectedStatus;
-    if (!targetStatus || targetStatus === order.orderStatus) return;
+    const targetStatus = (newStatus || selectedStatus || '').toLowerCase();
+    if (!targetStatus || targetStatus === (order?.orderStatus || '').toLowerCase()) return;
 
     if (!window.confirm(`Confirm changing order status to "${targetStatus.toUpperCase()}"?`)) {
       return;
@@ -58,9 +69,28 @@ export const AdminOrderDetailPage = () => {
     setUpdating(true);
     try {
       const updated = await adminService.updateOrderStatus(id, targetStatus);
-      setOrder(updated);
-      setSelectedStatus(updated.orderStatus);
-      success(`Order status updated to "${updated.orderStatus.toUpperCase()}".`);
+      setOrder((prev) => {
+        const merged = {
+          ...prev,
+          ...(updated || {}),
+          customerName: updated?.customerName || prev?.customerName,
+          customerEmail: updated?.customerEmail || prev?.customerEmail,
+          customerPhone: updated?.customerPhone || prev?.customerPhone,
+          user: updated?.user || prev?.user,
+          shippingAddress: {
+            address: updated?.shippingAddress?.address || prev?.shippingAddress?.address,
+            city: updated?.shippingAddress?.city || prev?.shippingAddress?.city,
+            state: updated?.shippingAddress?.state || prev?.shippingAddress?.state,
+            country: updated?.shippingAddress?.country || prev?.shippingAddress?.country || 'Nigeria',
+          },
+          items: (updated?.items && updated.items.length > 0) ? updated.items : prev?.items,
+          orderStatus: targetStatus,
+          paymentStatus: targetStatus === 'paid' ? 'paid' : (updated?.paymentStatus || prev?.paymentStatus),
+        };
+        return merged;
+      });
+      setSelectedStatus(targetStatus);
+      success(`Order status updated to "${targetStatus.toUpperCase()}".`);
     } catch (err) {
       toastError(err.message || 'Failed to update order status.');
     } finally {
@@ -75,8 +105,27 @@ export const AdminOrderDetailPage = () => {
     setUpdating(true);
     try {
       const updated = await adminService.updateOrderStatus(id, 'paid');
-      setOrder(updated);
-      setSelectedStatus(updated.orderStatus);
+      setOrder((prev) => {
+        const merged = {
+          ...prev,
+          ...(updated || {}),
+          customerName: updated?.customerName || prev?.customerName,
+          customerEmail: updated?.customerEmail || prev?.customerEmail,
+          customerPhone: updated?.customerPhone || prev?.customerPhone,
+          user: updated?.user || prev?.user,
+          shippingAddress: {
+            address: updated?.shippingAddress?.address || prev?.shippingAddress?.address,
+            city: updated?.shippingAddress?.city || prev?.shippingAddress?.city,
+            state: updated?.shippingAddress?.state || prev?.shippingAddress?.state,
+            country: updated?.shippingAddress?.country || prev?.shippingAddress?.country || 'Nigeria',
+          },
+          items: (updated?.items && updated.items.length > 0) ? updated.items : prev?.items,
+          orderStatus: 'paid',
+          paymentStatus: 'paid',
+        };
+        return merged;
+      });
+      setSelectedStatus('paid');
       success(`Order "${order.orderNumber}" marked as PAID!`);
 
       const waUrl = getAdminCustomerWhatsAppUrl(updated || order);
@@ -130,9 +179,30 @@ export const AdminOrderDetailPage = () => {
         {/* Order Title & Status Bar */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4 border-b border-neutral-800 pb-5 sm:pb-6">
           <div>
-            <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#FFE600] block mb-1">
-              DISPATCH RECORD
-            </span>
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-[#FFE600] block">
+                DISPATCH RECORD
+              </span>
+              <span
+                className={`inline-block px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
+                  order.orderStatus === 'pending' || order.paymentStatus === 'pending'
+                    ? 'bg-amber-500/20 text-amber-400 border-amber-500/40 animate-pulse'
+                    : order.orderStatus === 'paid'
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                    : order.orderStatus === 'processing'
+                    ? 'bg-blue-500/20 text-blue-400 border-blue-500/40'
+                    : order.orderStatus === 'shipped'
+                    ? 'bg-[#FFE600]/20 text-[#FFE600] border-[#FFE600]/40'
+                    : order.orderStatus === 'delivered'
+                    ? 'bg-cyan-500/20 text-cyan-400 border-cyan-500/40'
+                    : 'bg-red-500/20 text-red-400 border-red-500/40'
+                }`}
+              >
+                {order.orderStatus === 'pending' || order.paymentStatus === 'pending'
+                  ? 'AWAITING PAYMENT'
+                  : order.orderStatus}
+              </span>
+            </div>
             <h1 className="text-xl sm:text-3xl font-black text-white">
               {order.orderNumber}
             </h1>
@@ -196,27 +266,48 @@ export const AdminOrderDetailPage = () => {
             </a>
           )}
 
-          {order.orderStatus === 'processing' || order.orderStatus === 'paid' ? (
+          {order.orderStatus === 'paid' && (
+            <button
+              onClick={() => handleUpdateStatus('processing')}
+              disabled={updating}
+              className="px-3 py-1.5 bg-blue-500 text-white font-black uppercase text-[10px] tracking-wider hover:bg-blue-400 flex items-center gap-1.5 disabled:opacity-50"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              MARK PROCESSING (PAID → PROCESSING)
+            </button>
+          )}
+
+          {(order.orderStatus === 'processing' || order.orderStatus === 'paid') && (
             <button
               onClick={() => handleUpdateStatus('shipped')}
               disabled={updating}
-              className="px-3 py-1 bg-[#FFE600] text-black font-black uppercase text-[10px] tracking-wider hover:bg-yellow-400 flex items-center gap-1.5 disabled:opacity-50"
+              className="px-3 py-1.5 bg-[#FFE600] text-black font-black uppercase text-[10px] tracking-wider hover:bg-yellow-400 flex items-center gap-1.5 disabled:opacity-50"
             >
               <Truck className="w-3.5 h-3.5" />
-              MARK SHIPPED (PROCESSING → SHIPPED)
+              MARK SHIPPED (→ SHIPPED)
             </button>
-          ) : null}
+          )}
 
-          {order.orderStatus === 'shipped' ? (
+          {order.orderStatus === 'shipped' && (
             <button
               onClick={() => handleUpdateStatus('delivered')}
               disabled={updating}
-              className="px-3 py-1 bg-cyan-400 text-black font-black uppercase text-[10px] tracking-wider hover:bg-cyan-300 flex items-center gap-1.5 disabled:opacity-50"
+              className="px-3 py-1.5 bg-cyan-400 text-black font-black uppercase text-[10px] tracking-wider hover:bg-cyan-300 flex items-center gap-1.5 disabled:opacity-50"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
               MARK DELIVERED (SHIPPED → DELIVERED)
             </button>
-          ) : null}
+          )}
+
+          {order.orderStatus !== 'cancelled' && order.orderStatus !== 'delivered' && (
+            <button
+              onClick={() => handleUpdateStatus('cancelled')}
+              disabled={updating}
+              className="px-3 py-1.5 bg-neutral-900 text-neutral-400 hover:text-red-400 border border-neutral-800 font-bold uppercase text-[10px] tracking-wider transition-colors ml-auto disabled:opacity-50"
+            >
+              CANCEL ORDER
+            </button>
+          )}
         </div>
 
         {/* Customer & Shipping Information Grid */}
@@ -227,10 +318,10 @@ export const AdminOrderDetailPage = () => {
               <User className="w-4 h-4" />
               CUSTOMER PROFILE
             </h3>
-            <p><strong className="text-neutral-400">Name:</strong> {order.customerName}</p>
-            <p><strong className="text-neutral-400">Email:</strong> {order.customerEmail}</p>
+            <p><strong className="text-neutral-400">Name:</strong> {order.customerName || order.customer?.name || order.user?.name || 'Valued Customer'}</p>
+            <p><strong className="text-neutral-400">Email:</strong> {order.customerEmail || order.customer?.email || order.user?.email || 'N/A'}</p>
             <p className="flex items-center flex-wrap gap-2">
-              <strong className="text-neutral-400">Phone:</strong> {order.customerPhone}
+              <strong className="text-neutral-400">Phone:</strong> {order.customerPhone || order.customer?.phone || order.user?.phone || 'N/A'}
               {getAdminCustomerWhatsAppUrl(order) && (
                 <a
                   href={getAdminCustomerWhatsAppUrl(order)}
@@ -255,10 +346,10 @@ export const AdminOrderDetailPage = () => {
               <MapPin className="w-4 h-4" />
               DELIVERY DESTINATION
             </h3>
-            <p><strong className="text-neutral-400">Street:</strong> {order.shippingAddress?.address}</p>
-            <p><strong className="text-neutral-400">City:</strong> {order.shippingAddress?.city}</p>
-            <p><strong className="text-neutral-400">State:</strong> {order.shippingAddress?.state}</p>
-            <p><strong className="text-neutral-400">Country:</strong> {order.shippingAddress?.country || 'Nigeria'}</p>
+            <p><strong className="text-neutral-400">Street:</strong> {order.shippingAddress?.address || order.customer?.address || order.address || 'Standard Delivery Destination'}</p>
+            <p><strong className="text-neutral-400">City:</strong> {order.shippingAddress?.city || order.customer?.city || order.city || 'Ibadan'}</p>
+            <p><strong className="text-neutral-400">State:</strong> {order.shippingAddress?.state || order.customer?.state || order.state || 'Oyo State'}</p>
+            <p><strong className="text-neutral-400">Country:</strong> {order.shippingAddress?.country || order.customer?.country || order.country || 'Nigeria'}</p>
           </div>
         </div>
 

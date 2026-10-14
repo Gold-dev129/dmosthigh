@@ -28,6 +28,22 @@ export const OrdersPage = () => {
     };
 
     fetchOrders();
+
+    const handleOrderStatusUpdate = (e) => {
+      const { orderId, status } = e.detail || {};
+      if (orderId && status) {
+        setOrders((prev) =>
+          prev.map((ord) =>
+            ord._id === orderId || ord.orderNumber === orderId
+              ? { ...ord, orderStatus: status, ...(status === 'paid' ? { paymentStatus: 'paid' } : {}) }
+              : ord
+          )
+        );
+      }
+    };
+
+    window.addEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
+    return () => window.removeEventListener('dmosthigh_order_status_updated', handleOrderStatusUpdate);
   }, []);
 
   const getStatusBadge = (status) => {
