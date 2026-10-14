@@ -46,8 +46,8 @@ export const AdminProductFormPage = () => {
   const [image1Url, setImage1Url] = useState('');
   const [image1PublicId, setImage1PublicId] = useState('');
 
-  // Color 2 + Image 2
-  const [color2, setColor2] = useState('Yellow');
+  // Color 2 + Image 2 (Optional - only if 2nd color & image uploaded)
+  const [color2, setColor2] = useState('');
   const [image2Url, setImage2Url] = useState('');
   const [image2PublicId, setImage2PublicId] = useState('');
 
@@ -70,24 +70,25 @@ export const AdminProductFormPage = () => {
         setFeatured(Boolean(prod.featured));
         setActive(prod.active !== undefined ? Boolean(prod.active) : true);
 
-        // Populate Colors & Images
-        if (prod.colors && prod.colors.length > 0) {
-          setColor1(prod.colors[0] || 'Black');
-          if (prod.colors.length > 1) {
-            setColor2(prod.colors[1] || 'Yellow');
-          }
-        }
-
+        // Populate Colors & Images accurately
         if (prod.images && prod.images.length > 0) {
           setImage1Url(prod.images[0].url || '');
           setImage1PublicId(prod.images[0].public_id || '');
-          if (prod.images[0].color) setColor1(prod.images[0].color);
+          setColor1(prod.images[0].color || prod.colors?.[0] || 'Black');
 
           if (prod.images.length > 1) {
             setImage2Url(prod.images[1].url || '');
             setImage2PublicId(prod.images[1].public_id || '');
-            if (prod.images[1].color) setColor2(prod.images[1].color);
+            setColor2(prod.images[1].color || prod.colors?.[1] || '');
+          } else {
+            // Strictly single image uploaded - do not set second color!
+            setImage2Url('');
+            setImage2PublicId('');
+            setColor2('');
           }
+        } else if (prod.colors && prod.colors.length > 0) {
+          setColor1(prod.colors[0] || 'Black');
+          setColor2(prod.colors.length > 1 ? (prod.colors[1] || '') : '');
         }
       } catch (err) {
         toastError(err.message || 'Failed to load product for editing.');
@@ -192,26 +193,25 @@ export const AdminProductFormPage = () => {
     const colorsList = [];
     const imagesList = [];
 
-    if (color1.trim()) {
-      colorsList.push(color1.trim());
-      if (image1Url.trim()) {
-        imagesList.push({
-          url: image1Url.trim(),
-          public_id: image1PublicId.trim() || `img_1_${Date.now()}`,
-          color: color1.trim(),
-        });
-      }
+    const c1 = color1.trim() || 'Standard';
+    if (image1Url.trim()) {
+      colorsList.push(c1);
+      imagesList.push({
+        url: image1Url.trim(),
+        public_id: image1PublicId.trim() || `img_1_${Date.now()}`,
+        color: c1,
+      });
     }
 
-    if (color2.trim()) {
-      colorsList.push(color2.trim());
-      if (image2Url.trim()) {
-        imagesList.push({
-          url: image2Url.trim(),
-          public_id: image2PublicId.trim() || `img_2_${Date.now()}`,
-          color: color2.trim(),
-        });
-      }
+    // Strictly only include Color 2 if Image 2 is actually provided!
+    if (image2Url.trim()) {
+      const c2 = color2.trim() || 'Secondary';
+      colorsList.push(c2);
+      imagesList.push({
+        url: image2Url.trim(),
+        public_id: image2PublicId.trim() || `img_2_${Date.now()}`,
+        color: c2,
+      });
     }
 
     if (imagesList.length === 0) {
@@ -450,11 +450,11 @@ export const AdminProductFormPage = () => {
 
               {/* Image 1 Preview */}
               {image1Url ? (
-                <div className="relative aspect-[4/5] bg-neutral-900 border border-neutral-800 overflow-hidden">
+                <div className="relative aspect-[4/5] bg-neutral-900 border border-neutral-800 overflow-hidden flex items-center justify-center">
                   <img
                     src={image1Url}
                     alt={`Color 1 Preview (${color1})`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-2"
                   />
                   <div className="absolute bottom-0 inset-x-0 bg-black/80 py-1 px-2 text-[10px] font-black uppercase text-[#FFE600]">
                     Color 1: {color1}
@@ -475,19 +475,32 @@ export const AdminProductFormPage = () => {
               <div className="flex items-center justify-between">
                 <h3 className="text-xs font-black uppercase tracking-wider text-[#FFE600] flex items-center gap-2">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#FFE600] inline-block" />
-                  VARIANT 2 (SECONDARY)
+                  VARIANT 2 (OPTIONAL SECOND COLOR)
                 </h3>
+                {(image2Url || color2) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImage2Url('');
+                      setImage2PublicId('');
+                      setColor2('');
+                    }}
+                    className="text-[10px] text-red-400 hover:text-red-300 font-bold uppercase underline"
+                  >
+                    Clear Variant 2 (Single Color Only)
+                  </button>
+                )}
               </div>
 
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-400 mb-1">
-                  Color 2 Name
+                  Color 2 Name (Optional)
                 </label>
                 <input
                   type="text"
                   value={color2}
                   onChange={(e) => setColor2(e.target.value)}
-                  placeholder="Yellow"
+                  placeholder="e.g. Yellow (Leave blank if single color)"
                   className="w-full bg-neutral-900 border border-neutral-800 px-3 py-2 text-xs text-white focus:border-[#FFE600] focus:outline-none"
                 />
               </div>
@@ -495,7 +508,7 @@ export const AdminProductFormPage = () => {
               {/* Image 2 Upload / URL */}
               <div>
                 <label className="block text-[11px] font-black uppercase tracking-wider text-neutral-400 mb-1">
-                  Image 2 (Cloudinary Upload or URL)
+                  Image 2 (Cloudinary Upload or URL) (Optional)
                 </label>
                 <div className="flex gap-2 mb-2">
                   <input
@@ -518,21 +531,21 @@ export const AdminProductFormPage = () => {
 
               {/* Image 2 Preview */}
               {image2Url ? (
-                <div className="relative aspect-[4/5] bg-neutral-900 border border-neutral-800 overflow-hidden">
+                <div className="relative aspect-[4/5] bg-neutral-900 border border-neutral-800 overflow-hidden flex items-center justify-center">
                   <img
                     src={image2Url}
                     alt={`Color 2 Preview (${color2})`}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain p-2"
                   />
                   <div className="absolute bottom-0 inset-x-0 bg-black/80 py-1 px-2 text-[10px] font-black uppercase text-[#FFE600]">
-                    Color 2: {color2}
+                    Color 2: {color2 || 'Secondary'}
                   </div>
                 </div>
               ) : (
                 <div className="aspect-[4/5] border border-dashed border-neutral-800 flex flex-col items-center justify-center text-neutral-600 p-4 text-center">
                   <ImageIcon className="w-8 h-8 mb-2" />
                   <span className="text-[11px] uppercase tracking-wider font-bold">
-                    No Image Uploaded for {color2}
+                    No Image Uploaded for Variant 2
                   </span>
                 </div>
               )}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatNaira } from '../../utils/formatters.js';
@@ -14,9 +14,37 @@ export const ProductCard = ({ product }) => {
           },
         ];
 
-  const colors = product.colors && product.colors.length > 0 ? product.colors : ['Black'];
-  const [selectedColor, setSelectedColor] = useState(colors[0]);
+  // Derive uploaded colors directly from product images
+  const uploadedImageColors = Array.from(
+    new Set(images.map((img) => img.color?.trim()).filter(Boolean))
+  );
+
+  // If only one color is uploaded (or only 1 image uploaded), strictly allow only that 1 color!
+  let colors = [];
+  if (images.length === 1) {
+    const singleColor = images[0].color?.trim() || product.colors?.[0] || 'Standard';
+    colors = [singleColor];
+  } else if (uploadedImageColors.length === 1) {
+    colors = uploadedImageColors;
+  } else if (uploadedImageColors.length > 1) {
+    colors = uploadedImageColors;
+  } else if (product.colors && product.colors.length > 0) {
+    colors = product.colors;
+  } else {
+    colors = ['Standard'];
+  }
+
+  const [selectedColor, setSelectedColor] = useState(colors[0] || 'Standard');
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Sync selectedColor if product or colors update
+  useEffect(() => {
+    if (colors.length > 0) {
+      if (!selectedColor || !colors.some((c) => c.toLowerCase() === selectedColor.toLowerCase())) {
+        setSelectedColor(colors[0]);
+      }
+    }
+  }, [colors, selectedColor]);
 
   const hasMultipleImages = images.length > 1;
 
@@ -89,10 +117,10 @@ export const ProductCard = ({ product }) => {
       )}
 
       {/* Image Container with Responsive Height & Touch-Friendly Carousel Controls */}
-      <div className="relative h-44 min-[360px]:h-48 sm:h-56 md:h-60 lg:h-64 2xl:h-72 w-full bg-[#F7F7F7] overflow-hidden flex items-center justify-center">
+      <div className="relative h-48 min-[360px]:h-52 sm:h-60 md:h-64 lg:h-72 w-full bg-[#f8f8f8] overflow-hidden flex items-center justify-center p-2">
         <Link
           to={`/product/${product._id}`}
-          className="w-full h-full block"
+          className="w-full h-full flex items-center justify-center"
         >
           <img
             src={currentImage.url}
@@ -102,7 +130,7 @@ export const ProductCard = ({ product }) => {
               e.target.onerror = null;
               e.target.src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=800&auto=format&fit=crop&q=80';
             }}
-            className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+            className="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500 ease-out"
           />
         </Link>
 

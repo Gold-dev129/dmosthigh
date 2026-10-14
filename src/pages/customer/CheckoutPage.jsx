@@ -402,7 +402,7 @@ export const CheckoutPage = () => {
                     <img
                       src={item.image}
                       alt={item.name}
-                      className="w-12 h-14 object-cover bg-neutral-900 flex-shrink-0"
+                      className="w-12 h-14 object-contain p-1 bg-neutral-900 border border-neutral-800 flex-shrink-0"
                     />
                     <div className="flex-1 truncate">
                       <p className="font-bold text-white uppercase truncate">{item.name}</p>

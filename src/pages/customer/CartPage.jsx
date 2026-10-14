@@ -58,7 +58,7 @@ export const CartPage = () => {
                   <img
                     src={item.image || 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?w=200'}
                     alt={`${item.name} - ${item.color}`}
-                    className="w-16 h-20 min-[380px]:w-20 min-[380px]:h-24 object-cover object-center bg-neutral-950 flex-shrink-0"
+                    className="w-16 h-20 min-[380px]:w-20 min-[380px]:h-24 object-contain p-1 object-center bg-neutral-950 flex-shrink-0"
                   />
                   <div className="min-w-0 flex-1">
                     <Link

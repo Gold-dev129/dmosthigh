@@ -171,7 +171,7 @@ export const AdminProductsPage = () => {
                         <img
                           src={primaryImg}
                           alt={p.name}
-                          className="w-12 h-14 object-cover bg-neutral-950 flex-shrink-0"
+                          className="w-12 h-14 object-contain p-1 bg-neutral-950 flex-shrink-0"
                         />
                         <div>
                           <p className="font-bold text-white uppercase text-xs line-clamp-1">

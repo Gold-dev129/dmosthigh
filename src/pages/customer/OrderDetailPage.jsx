@@ -168,7 +168,7 @@ export const OrderDetailPage = () => {
                           <img
                             src={prodImg}
                             alt={prodName}
-                            className="w-12 h-14 sm:w-14 sm:h-16 object-cover bg-neutral-950 border border-neutral-800 flex-shrink-0"
+                            className="w-12 h-14 sm:w-14 sm:h-16 object-contain p-1 bg-neutral-950 border border-neutral-800 flex-shrink-0"
                           />
                         ) : (
                           <div className="w-12 h-14 sm:w-14 sm:h-16 bg-neutral-900 border border-neutral-800 flex items-center justify-center flex-shrink-0 text-neutral-600">

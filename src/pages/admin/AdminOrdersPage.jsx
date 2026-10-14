@@ -279,7 +279,7 @@ export const AdminOrdersPage = () => {
                                 <img
                                   src={itImg}
                                   alt={prodName}
-                                  className="w-8 h-9 object-cover bg-neutral-900 border border-neutral-800 flex-shrink-0"
+                                  className="w-8 h-9 object-contain p-0.5 bg-neutral-900 border border-neutral-800 flex-shrink-0"
                                 />
                               )}
                               <div className="leading-tight">

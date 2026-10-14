@@ -75,9 +75,6 @@ export const ProductDetailPage = () => {
     );
   }
 
-  const colors = product.colors && product.colors.length > 0 ? product.colors : ['Black'];
-  const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['Standard'];
-
   const images =
     product.images && product.images.length > 0
       ? product.images
@@ -88,7 +85,38 @@ export const ProductDetailPage = () => {
           },
         ];
 
+  // Derive uploaded colors directly from product images
+  const uploadedImageColors = Array.from(
+    new Set(images.map((img) => img.color?.trim()).filter(Boolean))
+  );
+
+  // If only one color is uploaded (or only 1 image uploaded), strictly allow only that 1 color!
+  let colors = [];
+  if (images.length === 1) {
+    const singleColor = images[0].color?.trim() || product.colors?.[0] || 'Standard';
+    colors = [singleColor];
+  } else if (uploadedImageColors.length === 1) {
+    colors = uploadedImageColors;
+  } else if (uploadedImageColors.length > 1) {
+    colors = uploadedImageColors;
+  } else if (product.colors && product.colors.length > 0) {
+    colors = product.colors;
+  } else {
+    colors = ['Standard'];
+  }
+
+  const sizes = product.sizes && product.sizes.length > 0 ? product.sizes : ['Standard'];
+
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  // Ensure selectedColor is always a valid choice from colors
+  useEffect(() => {
+    if (colors.length > 0) {
+      if (!selectedColor || !colors.some((c) => c.toLowerCase() === selectedColor.toLowerCase())) {
+        setSelectedColor(colors[0]);
+      }
+    }
+  }, [colors, selectedColor]);
 
   // Sync color selection to carousel index
   const handleColorSelect = (color) => {
@@ -172,11 +200,11 @@ export const ProductDetailPage = () => {
           {/* Left Column: Product Imagery with Carousel */}
           <div className="lg:col-span-7 flex flex-col gap-3 sm:gap-4">
             {/* Primary Hero Image with Carousel Controls */}
-            <div className="relative h-[280px] min-[360px]:h-[320px] min-[420px]:h-[360px] sm:h-[420px] md:h-[480px] lg:h-[540px] 2xl:h-[620px] w-full bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden group flex items-center justify-center">
+            <div className="relative h-[320px] min-[360px]:h-[380px] min-[420px]:h-[440px] sm:h-[500px] md:h-[560px] lg:h-[620px] 2xl:h-[700px] w-full bg-neutral-950 border border-neutral-800 rounded-lg overflow-hidden group flex items-center justify-center p-2 sm:p-4">
               <img
                 src={getActiveImage()}
                 alt={`${product.name} - ${selectedColor}`}
-                className="w-full h-full object-cover object-center transition-all duration-300"
+                className="w-full h-full object-contain object-center transition-all duration-300"
               />
 
               {/* Badges */}
@@ -268,7 +296,7 @@ export const ProductDetailPage = () => {
                       <img
                         src={img.url}
                         alt={`Preview ${idx + 1}`}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain p-1 bg-neutral-900"
                       />
                       <div className="absolute bottom-0 inset-x-0 bg-black/80 py-0.5 text-[9px] font-bold uppercase text-center text-neutral-300 truncate px-1">
                         {imgColor}
@@ -309,11 +337,17 @@ export const ProductDetailPage = () => {
               <div className="border-t border-neutral-850 pt-5">
                 <div className="flex justify-between items-center mb-2.5">
                   <span className="text-xs font-black uppercase tracking-widest text-neutral-300">
-                    SELECT COLOR: <span className="text-[#FFE600]">{selectedColor}</span>
+                    COLOR: <span className="text-[#FFE600]">{selectedColor}</span>
                   </span>
-                  <span className="text-[10px] text-neutral-500 uppercase">
-                    Image updates with color
-                  </span>
+                  {colors.length > 1 ? (
+                    <span className="text-[10px] text-neutral-500 uppercase">
+                      Image updates with color
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-[#FFE600] uppercase font-bold">
+                      Single Colorway
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2.5">
