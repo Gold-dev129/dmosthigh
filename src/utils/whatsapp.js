@@ -28,8 +28,8 @@ export const generateWhatsAppOrderMessage = ({ order, items, customer, deliveryF
   let itemsText = '';
   orderItems.forEach((item) => {
     const name = item.name || item.productName || 'Piece';
-    const color = item.color || '';
-    const size = item.size || '';
+    const color = item.color || item.selectedColor || '';
+    const size = item.size || item.selectedSize || '';
     const qty = item.quantity || 1;
     const itemTotal = (item.price || 0) * qty;
 
@@ -39,17 +39,40 @@ export const generateWhatsAppOrderMessage = ({ order, items, customer, deliveryF
     itemsText += `• ${qty}x *${name}*${variantStr} - ${formatPrice(itemTotal)}\n`;
   });
 
-  const subtotalAmount = order?.subtotal || orderItems.reduce((acc, i) => acc + (i.price * i.quantity), 0);
-  const feeAmount = deliveryFee !== undefined ? deliveryFee : (order?.shippingFee || 0);
-  const serviceAmount = serviceFee !== undefined ? serviceFee : (order?.serviceFee || 1000);
-  const totalAmount = total !== undefined ? total : (order?.total || (subtotalAmount + feeAmount + serviceAmount));
+  const subtotalAmount =
+    order?.subtotal !== undefined
+      ? order.subtotal
+      : orderItems.reduce((acc, i) => acc + (Number(i.price || 0) * Number(i.quantity || 1)), 0);
+
+  const feeAmount =
+    deliveryFee !== undefined
+      ? deliveryFee
+      : (order?.shippingFee !== undefined ? order.shippingFee : 0);
+
+  const serviceAmount =
+    serviceFee !== undefined
+      ? serviceFee
+      : (order?.serviceFee !== undefined ? order.serviceFee : 1000);
+
+  const totalAmount =
+    total !== undefined
+      ? total
+      : (order?.total !== undefined ? order.total : (subtotalAmount + feeAmount + serviceAmount));
+
+  const destinationCity =
+    customer?.city || order?.shippingAddress?.city || '';
+  const deliveryLabel = destinationCity ? `Delivery Fee (${destinationCity})` : 'Delivery Fee';
 
   const message = 
 `⚡ *D.MOST.HIGH ORDER* [${orderNumber}]
 
-📦 *Items:*
-${itemsText}
-💰 *Total to Pay:* ${formatPrice(totalAmount)}
+📦 *Items Ordered:*
+${itemsText || '• Streetwear Collection Pieces\n'}
+💵 *Payment Summary:*
+• *Product Fee:* ${formatPrice(subtotalAmount)}
+• *${deliveryLabel}:* ${formatPrice(feeAmount)}
+• *Service Fee:* ${formatPrice(serviceAmount)}
+• *Total Money Paid:* *${formatPrice(totalAmount)}*
 
 💳 *Transfer to:*
 • *Acct No:* ${WHATSAPP_CONFIG.ACCOUNT_NUMBER}
@@ -90,6 +113,9 @@ export const getAdminPaymentConfirmedMessage = (order) => {
   const customerName = order.customerName || 'Valued Customer';
   const orderNumber = order.orderNumber || 'DMH-ORDER';
   const total = Number(order.total || 0).toLocaleString('en-NG');
+  const subtotal = Number(order.subtotal || 0).toLocaleString('en-NG');
+  const shippingFee = Number(order.shippingFee || 0).toLocaleString('en-NG');
+  const serviceFee = Number(order.serviceFee || 1000).toLocaleString('en-NG');
   const city = order.shippingAddress?.city || 'Your Location';
 
   const items = order.items || [];
@@ -104,10 +130,16 @@ export const getAdminPaymentConfirmedMessage = (order) => {
   const msg = 
 `⚡ *D.MOST.HIGH™ — PAYMENT CONFIRMED* ⚡
 
-Hi *${customerName}*, your payment of *₦${total}* for Order *${orderNumber}* has been verified and confirmed! ✅
+Hi *${customerName}*, your payment for Order *${orderNumber}* has been verified and confirmed! ✅
 
 📦 *Ordered Pieces:*
 ${itemsText || '• Streetwear Collection Pieces\n'}
+💵 *Payment Summary:*
+• *Product Fee:* ₦${subtotal}
+• *Delivery Fee (${city}):* ₦${shippingFee}
+• *Service Fee:* ₦${serviceFee}
+• *Total Money Paid:* *₦${total}*
+
 🚚 *Destination:* ${city}
 ⚡ *Delivery Timeline:* Within 1-2 weeks nationwide
 
