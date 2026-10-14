@@ -30,14 +30,6 @@ export const CheckoutPage = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [copiedAccount, setCopiedAccount] = useState(false);
-
-  const handleCopyAccount = () => {
-    navigator.clipboard.writeText(WHATSAPP_CONFIG.ACCOUNT_NUMBER);
-    setCopiedAccount(true);
-    toastSuccess('Account number copied to clipboard!');
-    setTimeout(() => setCopiedAccount(false), 3000);
-  };
 
   // Pre-fill user data if logged in
   useEffect(() => {
@@ -147,15 +139,11 @@ export const CheckoutPage = () => {
       // Clear the user's cart
       clearCart();
 
-      // Launch WhatsApp in new tab / window
-      try {
-        window.open(whatsappUrl, '_blank', 'noopener,noreferrer');
-      } catch (err) {
-        console.warn('Popup blocked:', err);
-      }
-
       // Navigate to order confirmation page where customer can also review receipt instructions
       navigate(`/order-confirmed?reference=${order.orderNumber}&whatsapp=true`);
+
+      // Immediately launch WhatsApp with order details, amount, bank account & instructions
+      window.location.href = whatsappUrl;
     } catch (err) {
       console.error('Checkout error:', err);
       const msg = err.message || 'Order could not be initialized. Please try again.';
@@ -345,7 +333,7 @@ export const CheckoutPage = () => {
                 <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
                   <h3 className="text-xs font-black uppercase tracking-widest text-[#FFE600] flex items-center gap-2">
                     <MessageCircle className="w-4 h-4 text-emerald-400" />
-                    2. PAYMENT: DIRECT BANK TRANSFER & WHATSAPP
+                    2. PAYMENT & ORDER CONFIRMATION VIA WHATSAPP
                   </h3>
                   <span className="text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 font-bold uppercase">
                     OFFICIAL
@@ -353,61 +341,24 @@ export const CheckoutPage = () => {
                 </div>
 
                 <div className="p-4 bg-neutral-950 border border-neutral-800 space-y-3">
-                  <p className="text-[11px] font-bold text-neutral-400 uppercase tracking-wider">
-                    Bank Account Details for Payment:
+                  <p className="text-xs text-neutral-300 leading-relaxed">
+                    Your full order breakdown, total due with delivery, and official payment account details will be sent directly to your WhatsApp conversation with our team.
                   </p>
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-neutral-900 border border-neutral-800">
-                    <div>
-                      <span className="text-[10px] text-neutral-400 uppercase tracking-widest block font-bold">
-                        ACCOUNT NUMBER
-                      </span>
-                      <span className="text-xl sm:text-2xl font-black text-[#FFE600] tracking-wider font-mono">
-                        {WHATSAPP_CONFIG.ACCOUNT_NUMBER}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={handleCopyAccount}
-                      className="px-3 py-1.5 bg-[#FFE600]/10 border border-[#FFE600]/40 text-[#FFE600] hover:bg-[#FFE600] hover:text-black transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                    >
-                      {copiedAccount ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copiedAccount ? 'COPIED!' : 'COPY NUMBER'}
-                    </button>
+                  <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 text-[11px] text-emerald-300 space-y-2">
+                    <p className="font-bold flex items-center gap-1.5 text-emerald-400">
+                      <span>⚡ How payment works:</span>
+                    </p>
+                    <p className="text-neutral-300">
+                      1. Click <strong>"ORDER & PAY {formatNaira(total)} ON WHATSAPP"</strong> below to create your order.
+                    </p>
+                    <p className="text-neutral-300">
+                      2. WhatsApp will automatically launch with your order pieces, delivery fee, and payment account details.
+                    </p>
+                    <p className="text-neutral-300">
+                      3. Transfer the amount and reply with your <strong>payment screenshot / receipt</strong> directly in the chat for instant confirmation and dispatch.
+                    </p>
                   </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="p-2.5 bg-neutral-900 border border-neutral-850">
-                      <span className="text-[10px] text-neutral-400 uppercase block font-bold">
-                        ACCOUNT NAME
-                      </span>
-                      <span className="font-bold text-white uppercase">
-                        {WHATSAPP_CONFIG.ACCOUNT_NAME}
-                      </span>
-                    </div>
-                    <div className="p-2.5 bg-neutral-900 border border-neutral-850">
-                      <span className="text-[10px] text-neutral-400 uppercase block font-bold">
-                        WHATSAPP VERIFICATION LINE
-                      </span>
-                      <span className="font-bold text-emerald-400 font-mono">
-                        {WHATSAPP_CONFIG.DISPLAY_PHONE}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 text-[11px] text-emerald-300 space-y-1">
-                  <p className="font-bold">⚡ How it works:</p>
-                  <p className="text-neutral-300">
-                    1. Click below to submit your order (it automatically saves in our system).
-                  </p>
-                  <p className="text-neutral-300">
-                    2. Transfer <strong>{formatNaira(total)}</strong> to <strong>{WHATSAPP_CONFIG.ACCOUNT_NAME} ({WHATSAPP_CONFIG.ACCOUNT_NUMBER})</strong>.
-                  </p>
-                  <p className="text-neutral-300">
-                    3. You will be redirected to WhatsApp to send your <strong>transfer receipt</strong> for instant confirmation and dispatch!
-                  </p>
                 </div>
               </div>
 

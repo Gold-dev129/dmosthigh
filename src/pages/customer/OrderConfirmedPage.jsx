@@ -29,13 +29,6 @@ export const OrderConfirmedPage = () => {
   const [order, setOrder] = useState(null);
   const [verified, setVerified] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [copiedAccount, setCopiedAccount] = useState(false);
-
-  const handleCopyAccount = () => {
-    navigator.clipboard.writeText(WHATSAPP_CONFIG.ACCOUNT_NUMBER);
-    setCopiedAccount(true);
-    setTimeout(() => setCopiedAccount(false), 3000);
-  };
 
   useEffect(() => {
     const verifyAndLoad = async () => {
@@ -204,48 +197,22 @@ export const OrderConfirmedPage = () => {
                 </span>
               </div>
 
-              <div className="p-3.5 bg-neutral-900 border border-neutral-800 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-bold">
-                    TRANSFER TOTAL AMOUNT:
-                  </span>
-                  <span className="text-xl font-black text-[#FFE600]">
-                    {formatNaira(order.total)}
-                  </span>
+              <div className="p-4 bg-neutral-900 border border-neutral-800 space-y-3">
+                <p className="text-xs text-neutral-300 leading-relaxed">
+                  Your order reference, item details, total due of <strong className="text-[#FFE600]">{formatNaira(order.total)}</strong>, and official payment account details have been sent to your WhatsApp conversation with our store.
+                </p>
+                <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 text-xs text-emerald-400 font-bold flex items-start gap-2">
+                  <span className="text-base leading-none">📸</span>
+                  <span>Please send your transfer screenshot / payment receipt directly in the WhatsApp chat so our team can confirm your order on the dashboard and dispatch immediately.</span>
                 </div>
-
-                <div className="text-right">
-                  <span className="text-[10px] text-neutral-400 uppercase tracking-wider block font-bold">
-                    ACCOUNT NUMBER
-                  </span>
-                  <span className="text-base font-black text-white font-mono">
-                    {WHATSAPP_CONFIG.ACCOUNT_NUMBER}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleCopyAccount}
-                  className="px-3 py-1.5 bg-[#FFE600]/10 border border-[#FFE600]/40 text-[#FFE600] hover:bg-[#FFE600] hover:text-black transition-colors text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                >
-                  {copiedAccount ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                  {copiedAccount ? 'COPIED!' : 'COPY NUMBER'}
-                </button>
-              </div>
-
-              <div className="text-xs text-neutral-400 space-y-1">
-                <p>• <strong>Account Name:</strong> <span className="text-white">{WHATSAPP_CONFIG.ACCOUNT_NAME}</span></p>
-                <p>• <strong>WhatsApp Line:</strong> <span className="text-emerald-400 font-mono">{WHATSAPP_CONFIG.DISPLAY_PHONE}</span></p>
               </div>
 
               <a
                 href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
                 className="w-full py-4 bg-emerald-500 text-black font-black uppercase tracking-widest text-xs min-[400px]:text-sm hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-xl"
               >
                 <MessageCircle className="w-5 h-5" />
-                CHAT ON WHATSAPP & SHARE RECEIPT
+                OPEN WHATSAPP CHAT & SEND SCREENSHOT
               </a>
             </div>
           )}
