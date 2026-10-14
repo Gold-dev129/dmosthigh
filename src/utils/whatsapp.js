@@ -22,26 +22,21 @@ const formatPrice = (num) => {
  * Generate formatted WhatsApp message for customer order
  */
 export const generateWhatsAppOrderMessage = ({ order, items, customer, deliveryFee, serviceFee, total }) => {
-  const orderNumber = order?.orderNumber || 'DMH-PENDING';
-  const customerName = customer?.name || order?.customerName || 'Customer';
-  const customerPhone = customer?.phone || order?.customerPhone || '';
-  const customerAddress = customer?.address || order?.shippingAddress?.address || '';
-  const customerCity = customer?.city || order?.shippingAddress?.city || 'Ibadan';
-  const customerState = customer?.state || order?.shippingAddress?.state || '';
-  const customerCountry = customer?.country || order?.shippingAddress?.country || 'Nigeria';
-
+  const orderNumber = order?.orderNumber || 'DMH-ORDER';
   const orderItems = items && items.length > 0 ? items : order?.items || [];
 
   let itemsText = '';
-  orderItems.forEach((item, index) => {
-    const name = item.name || item.productName || 'Streetwear Piece';
-    const color = item.color || 'Standard';
-    const size = item.size || 'Standard';
+  orderItems.forEach((item) => {
+    const name = item.name || item.productName || 'Piece';
+    const color = item.color || '';
+    const size = item.size || '';
     const qty = item.quantity || 1;
-    const price = item.price || 0;
-    const itemTotal = price * qty;
+    const itemTotal = (item.price || 0) * qty;
 
-    itemsText += `${index + 1}. *${name}*\n   • Color: ${color} | Size: ${size}\n   • Qty: ${qty} | Unit: ${formatPrice(price)}\n   • Subtotal: ${formatPrice(itemTotal)}\n\n`;
+    const variant = [color, size].filter(Boolean).join(', ');
+    const variantStr = variant ? ` (${variant})` : '';
+
+    itemsText += `• ${qty}x *${name}*${variantStr} - ${formatPrice(itemTotal)}\n`;
   });
 
   const subtotalAmount = order?.subtotal || orderItems.reduce((acc, i) => acc + (i.price * i.quantity), 0);
@@ -50,34 +45,18 @@ export const generateWhatsAppOrderMessage = ({ order, items, customer, deliveryF
   const totalAmount = total !== undefined ? total : (order?.total || (subtotalAmount + feeAmount + serviceAmount));
 
   const message = 
-`⚡ *D.MOST.HIGH™ — ORDER & PAYMENT DETAILS* ⚡
+`⚡ *D.MOST.HIGH ORDER* [${orderNumber}]
 
-*ORDER REFERENCE:* ${orderNumber}
+📦 *Items:*
+${itemsText}
+💰 *Total to Pay:* ${formatPrice(totalAmount)}
 
-👤 *CUSTOMER INFORMATION:*
-• *Name:* ${customerName}
-• *Phone:* ${customerPhone}
-• *Delivery Address:* ${customerAddress}, ${customerCity}, ${customerState}, ${customerCountry}
-
-📦 *ORDERED PIECES:*
-${itemsText}💰 *PAYMENT BREAKDOWN:*
-• Items Subtotal: ${formatPrice(subtotalAmount)}
-• Delivery Fee (${customerCity}): ${formatPrice(feeAmount)}
-• Processing Fee: ${formatPrice(serviceAmount)}
-━━━━━━━━━━━━━━━━━━━━
-👉 *TOTAL AMOUNT TO PAY: ${formatPrice(totalAmount)}*
-━━━━━━━━━━━━━━━━━━━━
-
-💳 *OFFICIAL PAYMENT ACCOUNT:*
-Please transfer *${formatPrice(totalAmount)}* to:
+💳 *Transfer to:*
+• *Acct No:* ${WHATSAPP_CONFIG.ACCOUNT_NUMBER}
 • *Bank:* ${WHATSAPP_CONFIG.BANK_NAME}
-• *Account Number:* ${WHATSAPP_CONFIG.ACCOUNT_NUMBER}
-• *Account Name:* ${WHATSAPP_CONFIG.ACCOUNT_NAME}
+• *Name:* ${WHATSAPP_CONFIG.ACCOUNT_NAME}
 
-📸 *MANDATORY — SEND PAYMENT SCREENSHOT:*
-Once you complete the transfer, please reply directly in this chat with your *TRANSFER SCREENSHOT / RECEIPT* so our admin can verify your payment on the dashboard and dispatch your order immediately! ⚡
-
-Thank you for shopping with D.MOST.HIGH.`;
+📸 *Please send payment screenshot here once done!*`;
 
   return message;
 };
