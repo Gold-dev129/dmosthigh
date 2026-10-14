@@ -14,7 +14,9 @@ import {
   Clock,
   AlertCircle,
   RefreshCw,
+  MessageCircle,
 } from 'lucide-react';
+import { getAdminCustomerWhatsAppUrl } from '../../utils/whatsapp.js';
 
 export const AdminOrdersPage = () => {
   const { success, error: toastError } = useToast();
@@ -54,21 +56,27 @@ export const AdminOrdersPage = () => {
   /**
    * Admin confirms customer bank transfer / WhatsApp payment
    */
-  const handleMarkAsPaid = async (orderId, orderNumber) => {
-    const confirmMsg = `Have you confirmed payment transfer for order "${orderNumber}"?\n\nThis will mark the order as PAID and update its fulfillment status.`;
+  const handleMarkAsPaid = async (order) => {
+    const confirmMsg = `Have you confirmed payment transfer for order "${order.orderNumber}"?\n\nThis will mark the order as PAID and open WhatsApp with an official payment confirmation for ${order.customerName}.`;
     if (!window.confirm(confirmMsg)) return;
 
-    setUpdatingId(orderId);
+    setUpdatingId(order._id);
     try {
-      await adminService.updateOrderStatus(orderId, 'paid');
-      success(`Order "${orderNumber}" successfully confirmed and marked as PAID!`);
+      await adminService.updateOrderStatus(order._id, 'paid');
+      success(`Order "${order.orderNumber}" successfully confirmed and marked as PAID!`);
       setOrders((prev) =>
         prev.map((ord) =>
-          ord._id === orderId
+          ord._id === order._id
             ? { ...ord, orderStatus: 'paid', paymentStatus: 'paid', paidAt: new Date().toISOString() }
             : ord
         )
       );
+
+      // Open WhatsApp to notify the customer immediately!
+      const waUrl = getAdminCustomerWhatsAppUrl(order);
+      if (waUrl) {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      }
     } catch (err) {
       toastError(err.message || 'Failed to mark order as paid.');
     } finally {
@@ -260,13 +268,13 @@ export const AdminOrdersPage = () => {
                   <td className="py-4 px-4 whitespace-nowrap">
                     {ord.orderStatus === 'pending' || ord.paymentStatus === 'pending' ? (
                       <button
-                        onClick={() => handleMarkAsPaid(ord._id, ord.orderNumber)}
+                        onClick={() => handleMarkAsPaid(ord)}
                         disabled={updatingId === ord._id}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500 text-black font-black uppercase text-[10px] tracking-wider hover:bg-emerald-400 transition-colors shadow-sm disabled:opacity-50"
-                        title="Click to confirm bank transfer receipt and mark as PAID"
+                        title="Click to confirm bank transfer receipt, mark as PAID, and open WhatsApp confirmation"
                       >
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        MARK AS PAID
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        CONFIRM & WHATSAPP
                       </button>
                     ) : ord.orderStatus === 'processing' || ord.orderStatus === 'paid' ? (
                       <button
@@ -294,13 +302,27 @@ export const AdminOrdersPage = () => {
                   </td>
 
                   <td className="py-4 px-4 text-right whitespace-nowrap">
-                    <Link
-                      to={`/admin/orders/${ord._id}`}
-                      className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-bold hover:text-[#FFE600] hover:border-[#FFE600] transition-colors"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      View
-                    </Link>
+                    <div className="inline-flex items-center gap-1.5">
+                      {getAdminCustomerWhatsAppUrl(ord) && (
+                        <a
+                          href={getAdminCustomerWhatsAppUrl(ord)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500 hover:text-black transition-colors text-xs font-bold"
+                          title="Message customer directly on WhatsApp"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5" />
+                          <span className="hidden min-[480px]:inline">WhatsApp</span>
+                        </a>
+                      )}
+                      <Link
+                        to={`/admin/orders/${ord._id}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 bg-neutral-900 border border-neutral-700 text-neutral-200 text-xs font-bold hover:text-[#FFE600] hover:border-[#FFE600] transition-colors"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        View
+                      </Link>
+                    </div>
                   </td>
                 </tr>
               ))}

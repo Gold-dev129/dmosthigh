@@ -68,3 +68,61 @@ export const getWhatsAppOrderUrl = (orderPayload) => {
   const message = generateWhatsAppOrderMessage(orderPayload);
   return `https://wa.me/${WHATSAPP_CONFIG.PHONE_NUMBER}?text=${encodeURIComponent(message)}`;
 };
+
+/**
+ * Normalize Nigerian phone number to international WhatsApp format (234...)
+ */
+export const cleanNigerianPhone = (rawPhone) => {
+  if (!rawPhone) return '';
+  let digits = String(rawPhone).replace(/\D/g, '');
+  if (digits.startsWith('0')) {
+    digits = '234' + digits.slice(1);
+  } else if (!digits.startsWith('234') && digits.length === 10) {
+    digits = '234' + digits;
+  }
+  return digits;
+};
+
+/**
+ * Generate WhatsApp confirmation message from Admin to Customer
+ */
+export const getAdminPaymentConfirmedMessage = (order) => {
+  const customerName = order.customerName || 'Valued Customer';
+  const orderNumber = order.orderNumber || 'DMH-ORDER';
+  const total = Number(order.total || 0).toLocaleString('en-NG');
+  const city = order.shippingAddress?.city || 'Your Location';
+
+  const items = order.items || [];
+  let itemsText = '';
+  items.forEach((item) => {
+    const name = item.name || item.productName || 'Piece';
+    const variant = [item.selectedColor || item.color, item.selectedSize || item.size].filter(Boolean).join(', ');
+    const variantStr = variant ? ` (${variant})` : '';
+    itemsText += `• ${item.quantity || 1}x *${name}*${variantStr}\n`;
+  });
+
+  const msg = 
+`⚡ *D.MOST.HIGH™ — PAYMENT CONFIRMED* ⚡
+
+Hi *${customerName}*, your payment of *₦${total}* for Order *${orderNumber}* has been verified and confirmed! ✅
+
+📦 *Ordered Pieces:*
+${itemsText || '• Streetwear Collection Pieces\n'}
+🚚 *Destination:* ${city}
+⚡ *Delivery Timeline:* Within 1-2 weeks nationwide
+
+Your package is now being packaged by our team for dispatch. Thank you for choosing D.MOST.HIGH!`;
+
+  return msg;
+};
+
+/**
+ * Generate click-to-chat WhatsApp URL to message customer with payment confirmation
+ */
+export const getAdminCustomerWhatsAppUrl = (order) => {
+  const phone = cleanNigerianPhone(order.customerPhone);
+  if (!phone) return null;
+  const msg = getAdminPaymentConfirmedMessage(order);
+  return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+};
+

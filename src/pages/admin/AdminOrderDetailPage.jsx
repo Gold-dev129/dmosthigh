@@ -15,7 +15,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Clock,
+  MessageCircle,
 } from 'lucide-react';
+import { getAdminCustomerWhatsAppUrl } from '../../utils/whatsapp.js';
 
 export const AdminOrderDetailPage = () => {
   const { id } = useParams();
@@ -58,6 +60,28 @@ export const AdminOrderDetailPage = () => {
       setOrder(updated);
       setSelectedStatus(updated.orderStatus);
       success(`Order status updated to "${updated.orderStatus.toUpperCase()}".`);
+    } catch (err) {
+      toastError(err.message || 'Failed to update order status.');
+    } finally {
+      setUpdating(false);
+    }
+  };
+
+  const handleConfirmPaidAndWhatsApp = async () => {
+    const confirmMsg = `Have you confirmed payment for order "${order.orderNumber}"?\n\nThis will mark the order as PAID and open WhatsApp with an official confirmation receipt for ${order.customerName}.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setUpdating(true);
+    try {
+      const updated = await adminService.updateOrderStatus(id, 'paid');
+      setOrder(updated);
+      setSelectedStatus(updated.orderStatus);
+      success(`Order "${order.orderNumber}" marked as PAID!`);
+
+      const waUrl = getAdminCustomerWhatsAppUrl(updated || order);
+      if (waUrl) {
+        window.open(waUrl, '_blank', 'noopener,noreferrer');
+      }
     } catch (err) {
       toastError(err.message || 'Failed to update order status.');
     } finally {
@@ -150,14 +174,26 @@ export const AdminOrderDetailPage = () => {
           </span>
           {order.orderStatus === 'pending' || order.paymentStatus === 'pending' ? (
             <button
-              onClick={() => handleUpdateStatus('paid')}
+              onClick={() => handleConfirmPaidAndWhatsApp()}
               disabled={updating}
               className="px-4 py-2 bg-emerald-500 text-black font-black uppercase text-xs tracking-wider hover:bg-emerald-400 flex items-center gap-2 shadow-lg animate-pulse disabled:opacity-50"
             >
-              <CheckCircle2 className="w-4 h-4" />
-              CONFIRM PAYMENT & MARK AS PAID
+              <MessageCircle className="w-4 h-4" />
+              CONFIRM PAID & NOTIFY ON WHATSAPP
             </button>
           ) : null}
+
+          {getAdminCustomerWhatsAppUrl(order) && (
+            <a
+              href={getAdminCustomerWhatsAppUrl(order)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="px-3.5 py-1.5 bg-neutral-900 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500 hover:text-black font-black uppercase text-xs tracking-wider flex items-center gap-1.5 transition-colors"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              MESSAGE CUSTOMER ON WHATSAPP
+            </a>
+          )}
 
           {order.orderStatus === 'processing' || order.orderStatus === 'paid' ? (
             <button
@@ -192,7 +228,19 @@ export const AdminOrderDetailPage = () => {
             </h3>
             <p><strong className="text-neutral-400">Name:</strong> {order.customerName}</p>
             <p><strong className="text-neutral-400">Email:</strong> {order.customerEmail}</p>
-            <p><strong className="text-neutral-400">Phone:</strong> {order.customerPhone}</p>
+            <p className="flex items-center flex-wrap gap-2">
+              <strong className="text-neutral-400">Phone:</strong> {order.customerPhone}
+              {getAdminCustomerWhatsAppUrl(order) && (
+                <a
+                  href={getAdminCustomerWhatsAppUrl(order)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-bold"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" /> Chat on WhatsApp
+                </a>
+              )}
+            </p>
             {order.user && (
               <p className="text-[10px] text-neutral-500 pt-1">
                 Linked User ID: {order.user._id || order.user}
